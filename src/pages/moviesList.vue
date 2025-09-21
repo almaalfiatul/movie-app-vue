@@ -1,9 +1,23 @@
 <template>
-  <main class="container mx-auto px-6 py-8">
-    <h1 class="text-2xl font-bold text-white mb-6">All Movies</h1>
+  <main class="mx-auto px-6 sm:px-10 md:px-16 lg:px-26 pb-20 py-8 max-w-[1400px]">
+    <div class="flex items-center justify-between mb-10">
+      <h1 class="text-2xl font-bold text-white">All Movies</h1>
+      <button
+        @click="openNew"
+        class="bg-red-600 text-white px-4 py-2 rounded flex"
+      >
+        + Add Movie
+      </button>
+    </div>
 
+    <MovieModal 
+      :show="showModal"
+      :modelValue="editing"
+      @close="closeModal"
+      @save="handleSaved"
+    />
     <!-- Daftar Movie -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-10 mb-8">
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-[50px] mb-8">
       <div 
         v-for="movie in paginatedMovies" 
         :key="movie.id"
@@ -15,7 +29,7 @@
             <img
               :src="movie.cover_link"
               :alt="movie.title"
-              class="w-full h-60 md:h-72 lg:h-80 object-cover rounded-lg"
+              class="w-full h-48 md:h-56 lg:h-60 object-cover rounded-lg"
             />
           </router-link>
 
@@ -80,10 +94,16 @@
         Next
       </button>
     </div>
-
-    <button @click="$router.back()" class="text-gray-300 hover:text-white flex justify-center items-center gap-2">
-      ← Back
-    </button>
+    <div class="fixed bottom-0 left-0 w-full flex items-center justify-center">
+      <div class="absolute w-full h-[80px] bg-black"></div>
+      <button
+        @click="goBack"
+        class="relative z-10 px-6 py-2 bg-red-600 hover:bg-gray-600 
+              rounded shadow text-white font-semibold"
+      >
+        ← Back
+      </button>
+    </div>
   </main>
   <!-- Modal edit -->
   <MovieModal
@@ -100,6 +120,13 @@
   import MovieModal from "../components/movieModal.vue";
   import { getMovies, updateMovie, deleteMovie } from "../firebaseService";
   import Swal from "sweetalert2";
+  import { useRouter } from "vue-router";
+
+  const router = useRouter();
+
+  function goBack() {
+    router.back();
+  }
 
   const props = defineProps({
     movies: { type: Array, required: true },
@@ -107,10 +134,9 @@
   });
 
   const emit = defineEmits(["refresh"]);
-
   const movies = ref([]);
   const currentPage = ref(1);
-  const perPage = 15;
+  const perPage = 12;
   const editing = ref(null);
   const showModal = ref(false);
 
@@ -129,6 +155,44 @@
 
   // Jalankan saat component mounted
   onMounted(fetchMovies);
+
+  function openNew() {
+    editing.value = {
+      id: null,
+      title: "",
+      directors: "",
+      note: "",
+      genre: [],
+      cover_link: "",
+      trailer_link: "",
+      duration: "",
+      country: "",
+      year: "",
+      actors: ""
+    };
+    showModal.value = true;
+  }
+
+  // function closeForm() {
+  //   editing.value = null;
+  // }
+
+  async function handleSaved(payload) {
+    try {
+      if (!payload.id) {
+        await createMovie(payload);
+        Swal.fire("Sukses!", "Movie berhasil ditambahkan.", "success");
+      } else {
+        await updateMovie(payload.id, payload);
+        Swal.fire("Sukses!", "Movie berhasil diperbarui.", "success");
+      }
+      await fetchMovies();
+      closeModal();
+    } catch (err) {
+      console.error(err);
+      Swal.fire("Error!", "Gagal menyimpan movie.", "error");
+    }
+  }
 
   const filteredMovies = computed(() => {
     if (!props.searchQuery) return movies.value;

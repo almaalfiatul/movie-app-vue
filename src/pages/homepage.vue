@@ -20,6 +20,30 @@
             @save="handleSave"
           />
 
+          <!-- Genre -->
+          <section class="mb-12" v-if="!props.searchQuery">
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="text-lg font-semibold text-white">New</h2>
+              <router-link 
+                to="/movies" 
+                class="text-gray-400 hover:text-white flex items-center gap-1"
+              >
+                View all →
+              </router-link>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-10">
+              <router-link 
+                v-for="m in (newMovies?.slice(0, 4) || [])" 
+                :key="m.year" 
+                :to="`/detail-movie/${m.id}`" 
+                class="text-gray-400 hover:text-white"
+              >
+                <MovieCard :movie="m" class="w-full h-90 object-cover rounded-lg" />
+
+              </router-link>
+            </div>
+          </section>
+
           <!-- Movies Collection -->
           <section class="mb-12">
             <div class="flex justify-between items-center mb-4">
@@ -33,7 +57,7 @@
             </div>
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-10">
               <router-link 
-                v-for="m in (filtered?.slice(0, 4) || [])" 
+                v-for="m in (searchResults?.slice(0, 4) || [])" 
                 :key="m.id" 
                 :to="`/detail-movie/${m.id}`" 
                 class="text-gray-400 hover:text-white"
@@ -43,66 +67,6 @@
               </router-link>
             </div>
           </section>
-
-          <!-- Genre -->
-          <!-- <section class="mb-12">
-            <div class="flex justify-between items-center mb-4">
-              <h2 class="text-lg font-semibold text-white">Genre:</h2>
-              <button class="text-gray-400 hover:text-white flex items-center gap-1">
-                View all → 
-              </button>
-            </div>
-            <div class="flex gap-4 overflow-x-auto pb-2">
-              <div
-                v-for="movie in genreMovies"
-                :key="movie.id"
-                class="w-40 sm:w-48 flex-shrink-0 bg-gray-800 rounded-lg overflow-hidden relative"
-              >
-                <img
-                  :src="movie.cover_link"
-                  alt=""
-                  class="w-full h-56 sm:h-64 object-cover"
-                />
-                <div class="absolute bottom-2 left-2 flex gap-2">
-                  <span class="bg-red-600 text-xs text-white px-2 py-0.5 rounded">HD</span>
-                  <span class="bg-gray-700 text-xs text-white px-2 py-0.5 rounded">{{ movie.label }}</span>
-                </div>
-                <div class="p-2">
-                  <h3 class="text-sm font-medium text-white truncate">{{ movie.title }}</h3>
-                </div>
-              </div>
-            </div>
-          </section> -->
-
-          <!-- New Release -->
-          <!-- <section>
-            <div class="flex justify-between items-center mb-4">
-              <h2 class="text-lg font-semibold text-white">New Release - Series</h2>
-              <button class="text-gray-400 hover:text-white flex items-center gap-1">
-                View all → 
-              </button>
-            </div>
-            <div class="flex gap-4 overflow-x-auto pb-2">
-              <div
-                v-for="series in newSeries"
-                :key="series.id"
-                class="w-40 sm:w-48 flex-shrink-0 bg-gray-800 rounded-lg overflow-hidden relative"
-              >
-                <img
-                  :src="series.image"
-                  alt=""
-                  class="w-full h-56 sm:h-64 object-cover"
-                />
-                <div class="absolute bottom-2 left-2 flex gap-2">
-                  <span class="bg-red-600 text-xs text-white px-2 py-0.5 rounded">HD</span>
-                  <span class="bg-gray-700 text-xs text-white px-2 py-0.5 rounded">{{ series.label }}</span>
-                </div>
-                <div class="p-2">
-                  <h3 class="text-sm font-medium text-white truncate">{{ series.title }}</h3>
-                </div>
-              </div>
-            </div>
-          </section> -->
         </div>
 
         <!-- Sidebar Form Editing -->
@@ -131,6 +95,7 @@
   const movies = ref([]);
   const editing = ref(null);
   const showModal = ref(false);
+  const searchQuery = ref("");
 
   // Fetch movies dari Firebase
   const fetchMovies = async () => {
@@ -151,12 +116,23 @@
     movies.value = (await getMovies()) || [];
   });
 
-  const filtered = computed(() => {
-    if (!props.searchQuery) return movies.value;
-    return movies.value.filter(m =>
-      m.title.toLowerCase().includes(props.searchQuery.toLowerCase())
-    );
+  const newMovies = computed(() => {
+  return movies.value
+    .slice()
+    .sort((a, b) => b.year - a.year)
+    .slice(0, 4);
+});
+
+const searchResults = computed(() => { 
+  if (!props.searchQuery) return movies.value; // filter berdasarkan search query 
+    const filtered = movies.value.filter(m => m.title.toLowerCase().includes(props.searchQuery.toLowerCase()) ); // pastikan unik berdasarkan id 
+    const uniqueMovies = Array.from(new Map(filtered.map(m => [m.id, m])).values()); 
+    console.log(uniqueMovies); // opsional: hilangkan movie yang sudah ada di newMovies 
+    const newMovieIds = new Set(newMovies.value.map(m => m.id)); 
+    console.log(newMovieIds); 
+    return uniqueMovies.filter(m => !newMovieIds.has(m.id)); 
   });
+
 
   function openNew() {
     editing.value = {
@@ -180,11 +156,6 @@
     editing.value = null;
   }
 
-  // Open form untuk edit movie
-  function openEdit(movie) {
-    editing.value = { ...movie };
-  }
-
   async function handleSave(payload) {
     try {
       if (!payload.id) {
@@ -202,7 +173,6 @@
     }
   }
 
-
   // Delete movie
   async function handleDelete(id) {
     await deleteMovie(id);
@@ -211,9 +181,6 @@
   }
 
   // Close form
-  function closeForm() {
-    editing.value = null;
-  }
 </script>
 
 <style>

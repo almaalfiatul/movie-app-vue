@@ -1,6 +1,9 @@
 <template>
   <form @submit.prevent="handleSubmit" class="space-y-4 text-white">
     <!-- Title -->
+    <h2 class="text-2xl font-bold text-red mb-4 flex justify-center">
+        {{ form?.id ? "Edit Movie" : "Add Movie" }}
+    </h2>
     <div>
       <label class="block mb-1 text-sm">Title</label>
       <input
@@ -120,7 +123,7 @@
     </div>
 
     <!-- Action Buttons -->
-    <div class="mt-4 flex gap-2">
+    <div class="mt-4 flex gap-2 flex justify-center">
       <button type="submit"
               class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
         Save
@@ -143,6 +146,7 @@ const props = defineProps({
   }
 });
 const emit = defineEmits(["save", "cancel"]);
+console.log(props.modelValue, 'val');
 
 // Reactive form
 const form = reactive({
@@ -155,6 +159,7 @@ const form = reactive({
   duration: props.modelValue.duration || "",
   year: props.modelValue.year || "",
   notes: props.modelValue.notes || "",
+  id: props.modelValue.id || "",
 });
 
 // Hardcoded genre list
@@ -206,11 +211,18 @@ function toggleGenre(genre) {
   }
 }
 
+function generateRandomId() {
+  const timestamp = Date.now();
+  const random = Math.floor(Math.random() * 1000);
+  return Number(`${timestamp}${random}`);
+}
+
 // Submit
 function handleSubmit() {
   const payload = {
     ...form,
-    genre: selectedGenres.value // kirim ke parent dengan key yang sama
+    genre: selectedGenres.value,
+    id: generateRandomId(),
   };
   emit("save", payload);
 }

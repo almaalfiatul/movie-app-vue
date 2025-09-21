@@ -9,7 +9,7 @@
       <div class="mb-6 relative">
         <iframe 
           :src="movie.trailer_link" 
-          class="w-full h-[600px] rounded-lg"
+          class="w-full h-[400px] rounded-lg"
           frameborder="0"
           allow="autoplay; fullscreen; picture-in-picture"
           allowfullscreen
@@ -31,9 +31,10 @@
             <h1 class="text-3xl font-bold">{{ movie.title }}</h1>
             <button 
               class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
-              @click="addRating"
+              @click="openEdit(movie)"
+              title="Edit Movie"
             >
-              + Add Ratings
+              Edit Movie
             </button>
           </div>
 
@@ -48,12 +49,18 @@
           </div>
 
           <!-- Summary -->
-          <p class="mt-2">{{ movie.description || movie.summary }}</p>
+          <p class="mt-2">{{ movie.notes || movie.description }}</p>
 
           <!-- Additional info -->
           <div class="text-sm space-y-1 mt-2">
             <p><strong>Country:</strong> {{ movie.country }}</p>
-            <p><strong>Genre:</strong> {{ movie.genre }}</p>
+            <p><strong>Genre:</strong> 
+              <div class="px-3 py-1 rounded text-sm inline-block">
+                {{ Array.isArray(movie.genre) 
+                  ? movie.genre.join(", ") 
+                  : movie.genre }}
+              </div>
+            </p>
             <p><strong>Production:</strong> {{ movie.directors || "N/A" }}</p>
             <p><strong>Cast:</strong> {{ movie.actors }}</p>
           </div>
@@ -70,67 +77,103 @@
             :to="`/detail-movie/${m.id}`"
           >
             <MovieCard :movie="m"
-            class="w-full h-80 object-cover rounded-lg" />
+            class="w-full h-90 object-cover rounded-lg" />
           </router-link>
         </div>
       </div>
 
-      <div class="flex justify-center mb-6">
+      <div class="fixed bottom-0 left-0 w-full flex items-center justify-center">
+        <div class="absolute w-full h-[80px] bg-black"></div>
         <button
           @click="$router.back()"
-          class="mb-4 w-20 h-10 bg-gray-700 mt-10 hover:bg-gray-600 rounded shadow 
-          flex items-center justify-center text-white font-semibold"
+          class="relative z-10 px-6 py-2 bg-red-600 hover:bg-gray-600 
+                rounded shadow text-white font-semibold"
         >
           ← Back
         </button>
       </div>
     </div>
   </div>
+  <!-- Modal edit -->
+  <MovieModal
+    :show="showModal"
+    :movie="editing"
+    @close="closeModal"
+    @save="handleSaved"
+    @refresh="loadMovies"
+  />
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from "vue";
-import { useRoute } from "vue-router";
-import { getMovies } from "../firebaseService";
-import MovieCard from "../components/movieCard.vue";
+  import { ref, onMounted, computed, watch } from "vue";
+  import { useRoute } from "vue-router";
+  import { getMovies, updateMovie } from "../firebaseService";
+  import MovieCard from "../components/movieCard.vue";
+  import MovieModal from "../components/movieModal.vue";
+  import Swal from "sweetalert2";
+  import { useRouter } from "vue-router";
+  import { nextTick } from "vue";
+  const router = useRouter();
+  const route = useRoute();
+  const movie = ref(null);
+  const movies = ref([]);
+  const editing = ref(null);
+  const showModal = ref(false);
+  const emit = defineEmits(['save']);
 
-const route = useRoute();
-const movieId = route.params.id;
-
-const movie = ref(null);
-const movies = ref([]);
-
-async function loadMovies() {
-  if (!movies.value.length) {
-    movies.value = await getMovies() || [];
+  async function loadMovies() {
+    if (!movies.value.length) {
+      movies.value = await getMovies() || [];
+    }
+    const id = route.params.id;
+    movie.value = movies.value.find(m => String(m.id) === id) || null;
   }
-  const id = route.params.id;
-  movie.value = movies.value.find(m => String(m.id) === id) || null;
-}
 
-// Load awal
-onMounted(loadMovies);
+  // Load awal
+  onMounted(async () => {
+    await loadMovies();
+  });
 
-// Watch perubahan route id
-watch(
-  () => route.params.id,
-  () => {
-    loadMovies();
-  }
-);
+  // Watch perubahan route id
+  watch(
+    () => route.params.id,
+    () => {
+      loadMovies();
+    }
+  );
 
-// Recommended movies
-const recommended = computed(() => {
-  if (!movie.value) return [];
-  return movies.value.filter(m => m.id !== movie.value.id).slice(0, 8);
-});
+    function openEdit(movie) {
+      editing.value = { ...movie };
+      console.log(editing.value, 'editing');
+      showModal.value = true;
+    }
 
-// Add ratings handler
-function addRating() {
-  const rating = prompt("Rate this movie (1-10):");
-  if (rating) {
-    alert(`You rated ${movie.value.title} with ${rating}/10`);
-    // nanti bisa update ke firebase
-  }
-}
+    function closeModal() {
+      showModal.value = false;
+      editing.value = null;
+      window.location.reload();
+    }
+
+    async function handleSaved(payload) {
+      try {
+        if (!payload.id) {
+          await createMovie(payload);
+          Swal.fire("Sukses!", "Movie berhasil ditambahkan.", "success");
+        } else {
+          await updateMovie(payload.id, payload);
+          Swal.fire("Sukses!", "Movie berhasil diperbarui.", "success");
+        }
+        await loadMovies();
+        closeModal();
+      } catch (err) {
+        console.error(err);
+        Swal.fire("Error!", "Gagal menyimpan movie.", "error");
+      }
+    }
+
+  // Recommended movies
+  const recommended = computed(() => {
+    if (!movie.value) return [];
+    return movies.value.filter(m => m.id !== movie.value.id).slice(0, 8);
+  });
 </script>
