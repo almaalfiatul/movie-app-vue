@@ -1,8 +1,5 @@
 
-// src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
-
-// ⬅️ pakai relative path (lebih aman di Vite/Stackblitz)
 import HomePage from '../pages/homepage.vue'
 import MovieList from '../pages/moviesList.vue'
 import DetailMovie from '../pages/detailMovie.vue'

@@ -16,7 +16,6 @@
       @close="closeModal"
       @save="handleSaved"
     />
-    <!-- Daftar Movie -->
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-[50px] mb-8">
       <div 
         v-for="movie in paginatedMovies" 
@@ -24,7 +23,6 @@
         class="relative bg-gray-800 rounded-lg overflow-hidden"
       >
         <div class="relative w-full rounded-lg overflow-hidden">
-          <!-- Poster -->
           <router-link :to="`/detail-movie/${movie.id}`">
             <img
               :src="movie.cover_link"
@@ -33,7 +31,6 @@
             />
           </router-link>
 
-          <!-- Overlay kiri: HD & Duration -->
           <div class="absolute top-2 left-2 flex space-x-2 z-10">
             <span class="bg-red-600 text-white text-xs px-1.5 py-0.5 rounded">HD</span>
             <span class="bg-black bg-opacity-70 text-white text-xs px-1.5 py-0.5 rounded flex items-center space-x-1">
@@ -46,9 +43,7 @@
             </span>
           </div>
 
-          <!-- Overlay kanan: Edit & Delete -->
           <div class="absolute top-1.5 right-2 flex space-x-2 z-10">
-            <!-- Tombol edit -->
             <button
               @click="openEdit(movie)"
               class="bg-black bg-opacity-70 text-xs text-white px-3 py-1 rounded-md shadow hover:bg-red-700"
@@ -56,7 +51,6 @@
             >
               ✏️ Edit
             </button>
-            <!-- Tombol delete -->
             <button
               @click="confirmDelete(movie.id)"
               class="bg-black bg-opacity-70 text-xs text-white px-3 py-1 rounded-md shadow hover:bg-red-700"
@@ -66,7 +60,6 @@
             </button>
           </div>
 
-          <!-- Title di bawah poster -->
           <div class="absolute bottom-0 left-0 w-full bg-black bg-opacity-50 text-white text-sm p-2 truncate z-10">
             {{ movie.title }}
           </div>
@@ -74,7 +67,6 @@
       </div>
     </div>
 
-    <!-- Pagination -->
     <div class="flex justify-center items-center space-x-2 text-white">
       <button 
         @click="prevPage" 
@@ -83,9 +75,7 @@
       >
         Prev
       </button>
-
       <span>Page {{ currentPage }} of {{ totalPages }}</span>
-
       <button 
         @click="nextPage" 
         :disabled="currentPage === totalPages"
@@ -105,7 +95,6 @@
       </button>
     </div>
   </main>
-  <!-- Modal edit -->
   <MovieModal
     :show="showModal"
     :movie="editing"
@@ -141,11 +130,10 @@
   const showModal = ref(false);
 
 
-  // Fetch movies dari Firebase
   const fetchMovies = async () => {
     try {
-      const data = await getMovies(); // harus return array
-      movies.value = data || [];      // guard kalau data null/undefined
+      const data = await getMovies(); 
+      movies.value = data || []; 
       console.log(movies.value, "movies loaded");
     } catch (err) {
       console.error("Failed to fetch movies:", err);
@@ -153,7 +141,6 @@
     }
   };
 
-  // Jalankan saat component mounted
   onMounted(fetchMovies);
 
   function openNew() {
@@ -172,10 +159,6 @@
     };
     showModal.value = true;
   }
-
-  // function closeForm() {
-  //   editing.value = null;
-  // }
 
   async function handleSaved(payload) {
     try {
@@ -222,7 +205,7 @@
       try {
         await deleteMovie(id);
         Swal.fire("Deleted!", "Movie has been deleted.", "success");
-        movies.value = await getMovies(); // reload movies list
+        movies.value = await getMovies(); 
       } catch (err) {
         console.error(err);
         Swal.fire("Error!", "Failed to delete movie.", "error");
@@ -236,8 +219,8 @@
   }
 
   async function handleSave(payload) {
-    await updateMovie(payload.id, payload); // ini sudah Realtime Database
-    movies.value = await getMovies();       // reload data supaya tampilan update
+    await updateMovie(payload.id, payload); 
+    movies.value = await getMovies(); 
     closeModal();
   }
 
@@ -251,7 +234,6 @@
     return Math.ceil(filteredMovies.value.length / perPage);
   });
 
-  // Navigasi halaman
   function nextPage() {
     if (currentPage.value < totalPages.value) {
       currentPage.value++;

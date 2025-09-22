@@ -1,6 +1,5 @@
 <template>
   <form @submit.prevent="handleSubmit" class="space-y-4 text-white">
-    <!-- Title -->
     <h2 class="text-2xl font-bold text-red mb-4 flex justify-center">
         {{ form?.id ? "Edit Movie" : "Add Movie" }}
     </h2>
@@ -15,7 +14,6 @@
       />
     </div>
 
-    <!-- Director -->
     <div>
       <label class="block mb-1 text-sm">Director</label>
       <input
@@ -26,7 +24,6 @@
       />
     </div>
 
-    <!-- Actors -->
     <div>
       <label class="block mb-1 text-sm">Actors</label>
       <input
@@ -37,7 +34,6 @@
       />
     </div>
 
-    <!-- Country -->
     <div>
       <label class="block mb-1 text-sm">Country</label>
       <input
@@ -48,7 +44,6 @@
       />
     </div>
 
-    <!-- Cover Link -->
     <div>
       <label class="block mb-1 text-sm">Cover Link</label>
       <input
@@ -59,7 +54,6 @@
       />
     </div>
 
-    <!-- Trailer Link -->
     <div>
       <label class="block mb-1 text-sm">Trailer Link</label>
       <input
@@ -70,7 +64,6 @@
       />
     </div>
 
-    <!-- Duration -->
     <div>
       <label class="block mb-1 text-sm">Duration (minutes)</label>
       <input
@@ -82,7 +75,6 @@
       />
     </div>
 
-    <!-- Year -->
     <div>
       <label class="block mb-1 text-sm">Year</label>
       <input
@@ -94,7 +86,6 @@
       />
     </div>
 
-    <!-- Summary -->
     <div>
       <label class="block mb-1 text-sm">Summary</label>
       <textarea
@@ -105,7 +96,6 @@
       ></textarea>
     </div>
 
-    <!-- Genres -->
     <div class="p-4 bg-gray-900 rounded">
       <label class="text-white mb-2 block">Select Genres</label>
       <div class="flex gap-2 flex-wrap">
@@ -122,7 +112,6 @@
       </div>
     </div>
 
-    <!-- Action Buttons -->
     <div class="mt-4 flex gap-2 flex justify-center">
       <button type="submit"
               class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
@@ -137,93 +126,84 @@
 </template>
 
 <script setup>
-import { reactive, ref, watch, onMounted } from "vue";
+  import { reactive, ref, watch, onMounted } from "vue";
 
-const props = defineProps({
-  modelValue: {
-    type: Object,
-    default: () => ({})
+  const props = defineProps({
+    modelValue: {
+      type: Object,
+      default: () => ({})
+    }
+  });
+  const emit = defineEmits(["save", "cancel"]);
+  console.log(props.modelValue, 'val');
+
+  const form = reactive({
+    title: props.modelValue.title || "",
+    directors: props.modelValue.directors || "",
+    actors: props.modelValue.actors || "",
+    country: props.modelValue.country || "",
+    cover_link: props.modelValue.cover_link || "",
+    trailer_link: props.modelValue.trailer_link || "",
+    duration: props.modelValue.duration || "",
+    year: props.modelValue.year || "",
+    notes: props.modelValue.notes || "",
+    id: props.modelValue.id || "",
+  });
+
+  const availableGenres = [
+    "Action","Comedy","Drama","Horror","Sci-Fi","Crime","Thriller","War",
+    "Animation", "Romantic", "Biography", "Western"
+  ];
+
+  const selectedGenres = ref([]);
+
+  function initSelectedGenres() {
+    const genreData = props.modelValue?.genre;
+    if (Array.isArray(genreData)) {
+      selectedGenres.value = [...genreData];
+    } else if (typeof genreData === "string" && genreData.trim() !== "") {
+      selectedGenres.value = [genreData];
+    } else {
+      selectedGenres.value = [];
+    }
   }
-});
-const emit = defineEmits(["save", "cancel"]);
-console.log(props.modelValue, 'val');
 
-// Reactive form
-const form = reactive({
-  title: props.modelValue.title || "",
-  directors: props.modelValue.directors || "",
-  actors: props.modelValue.actors || "",
-  country: props.modelValue.country || "",
-  cover_link: props.modelValue.cover_link || "",
-  trailer_link: props.modelValue.trailer_link || "",
-  duration: props.modelValue.duration || "",
-  year: props.modelValue.year || "",
-  notes: props.modelValue.notes || "",
-  id: props.modelValue.id || "",
-});
+  onMounted(() => {
+    console.log("Mounted props.modelValue:", props.modelValue.genre);
 
-// Hardcoded genre list
-const availableGenres = [
-  "Action","Comedy","Drama","Horror","Sci-Fi","Crime","Thriller","War",
-  "Animation", "Romantic", "Biography", "Western"
-];
+    initSelectedGenres()
+  });
 
-// Selected genres
-const selectedGenres = ref([]);
+  watch(
+    () => props.modelValue,
+    () => {
+      form.title = props.modelValue.title || "";
+      // ... update field lain
+      initSelectedGenres(); // gunakan fungsi ini
+    },
+    { immediate: true, deep: true }
+  );
 
-// Initialize selected genres
-function initSelectedGenres() {
-  const genreData = props.modelValue?.genre;
-  if (Array.isArray(genreData)) {
-    selectedGenres.value = [...genreData];
-  } else if (typeof genreData === "string" && genreData.trim() !== "") {
-    // ubah string menjadi array
-    selectedGenres.value = [genreData];
-  } else {
-    selectedGenres.value = [];
+  function toggleGenre(genre) {
+    if (selectedGenres.value.includes(genre)) {
+      selectedGenres.value = selectedGenres.value.filter(g => g !== genre);
+    } else {
+      selectedGenres.value.push(genre);
+    }
   }
-}
 
-// Jalankan saat mount
-onMounted(() => {
-  console.log("Mounted props.modelValue:", props.modelValue.genre);
-
-  initSelectedGenres()
-});
-
-// Watch props berubah (misal edit dari API)
-watch(
-  () => props.modelValue,
-  () => {
-    form.title = props.modelValue.title || "";
-    // ... update field lain
-    initSelectedGenres(); // gunakan fungsi ini
-  },
-  { immediate: true, deep: true }
-);
-
-// Toggle genre
-function toggleGenre(genre) {
-  if (selectedGenres.value.includes(genre)) {
-    selectedGenres.value = selectedGenres.value.filter(g => g !== genre);
-  } else {
-    selectedGenres.value.push(genre);
+  function generateRandomId() {
+    const timestamp = Date.now();
+    const random = Math.floor(Math.random() * 1000);
+    return Number(`${timestamp}${random}`);
   }
-}
 
-function generateRandomId() {
-  const timestamp = Date.now();
-  const random = Math.floor(Math.random() * 1000);
-  return Number(`${timestamp}${random}`);
-}
-
-// Submit
-function handleSubmit() {
-  const payload = {
-    ...form,
-    genre: selectedGenres.value,
-    id: generateRandomId(),
-  };
-  emit("save", payload);
-}
+  function handleSubmit() {
+    const payload = {
+      ...form,
+      genre: selectedGenres.value,
+      id: generateRandomId(),
+    };
+    emit("save", payload);
+  }
 </script>

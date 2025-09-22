@@ -11,8 +11,6 @@
       >
         ✕
       </button>
-
-      <!-- Terima movie dari parent -->
       <MovieForm
         :modelValue="movie"
         @save="$emit('save', $event)"
@@ -26,7 +24,7 @@ import MovieForm from "./movieForm.vue";
 
 defineProps({
   show: Boolean,
-  movie: Object, // ganti modelValue menjadi movie
+  movie: Object, 
 });
 defineEmits(["close", "save"]);
 </script>

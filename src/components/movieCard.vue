@@ -1,6 +1,5 @@
 <template>
   <div class="relative bg-gray-800 rounded-lg overflow-hidden">
-    <!-- Poster -->
     <router-link :to="`/detail-movie/${movie.id}`">
       <img
         :src="movie.cover_link"
@@ -9,12 +8,8 @@
       />
     </router-link>
 
-    <!-- Title + HD + Duration -->
     <div class="p-2 bg-black bg-opacity-50 text-white">
-      <!-- Title -->
       <div class="font-semibold text-sm truncate">{{ movie.title }}</div>
-      
-      <!-- HD & Duration -->
       <div class="flex gap-2 mt-1 text-xs">
         <span class="bg-red-600 px-1.5 py-0.5 rounded">HD</span>
         <span class="bg-gray-700 px-1.5 py-0.5 rounded flex items-center">

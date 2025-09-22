@@ -1,9 +1,7 @@
-// firebaseService.js
 import { database } from "./firebase";
 import { ref as dbRef, get, set, push, update, remove } from "firebase/database";
 import Swal from "sweetalert2";
 
-// Ambil semua movies
 export async function getMovies() {
   const snapshot = await get(dbRef(database, "movies"));
   if (snapshot.exists()) {
@@ -16,7 +14,6 @@ export async function getMovies() {
   return [];
 }
 
-// Tambah movie baru
 export async function createMovie(movie) {
   const newRef = push(dbRef(database, "movies"));
   movie.id = newRef.key;
@@ -36,7 +33,6 @@ export async function updateMovie(id, data) {
   }
 }
 
-// Hapus movie
 export async function deleteMovie(id) {
   await remove(dbRef(database, `movies/${id}`));
 }

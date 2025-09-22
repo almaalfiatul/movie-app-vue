@@ -3,8 +3,6 @@
     <Hero />
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div class="flex flex-col lg:flex-row gap-8">
-        
-        <!-- Content utama -->
         <div class="flex-1">
           <button
             @click="openNew"
@@ -12,15 +10,12 @@
           >
             + Add Movie
           </button>
-
           <MovieModal 
             :show="showModal"
             :modelValue="editing"
             @close="closeModal"
             @save="handleSave"
           />
-
-          <!-- Genre -->
           <section class="mb-12" v-if="!props.searchQuery">
             <div class="flex justify-between items-center mb-4">
               <h2 class="text-lg font-semibold text-white">New</h2>
@@ -43,8 +38,6 @@
               </router-link>
             </div>
           </section>
-
-          <!-- Movies Collection -->
           <section class="mb-12">
             <div class="flex justify-between items-center mb-4">
               <h2 class="text-lg font-semibold text-white">Movies Collection</h2>
@@ -68,8 +61,6 @@
             </div>
           </section>
         </div>
-
-        <!-- Sidebar Form Editing -->
         <div class="w-full lg:w-1/3" v-if="editing">
           <MovieForm
             :modelValue="editing"
@@ -97,11 +88,10 @@
   const showModal = ref(false);
   const searchQuery = ref("");
 
-  // Fetch movies dari Firebase
   const fetchMovies = async () => {
     try {
-      const data = await getMovies(); // harus return array
-      movies.value = data || [];      // guard kalau data null/undefined
+      const data = await getMovies(); 
+      movies.value = data || []; 
     } catch (err) {
       console.error("Failed to fetch movies:", err);
       movies.value = [];
@@ -109,7 +99,7 @@
   };
 
   const props = defineProps({
-    searchQuery: String  // terima dari App.vue
+    searchQuery: String
   });
 
   onMounted(async () => {
@@ -124,10 +114,10 @@
 });
 
 const searchResults = computed(() => { 
-  if (!props.searchQuery) return movies.value; // filter berdasarkan search query 
-    const filtered = movies.value.filter(m => m.title.toLowerCase().includes(props.searchQuery.toLowerCase()) ); // pastikan unik berdasarkan id 
+  if (!props.searchQuery) return movies.value; 
+    const filtered = movies.value.filter(m => m.title.toLowerCase().includes(props.searchQuery.toLowerCase()) );
     const uniqueMovies = Array.from(new Map(filtered.map(m => [m.id, m])).values()); 
-    console.log(uniqueMovies); // opsional: hilangkan movie yang sudah ada di newMovies 
+    console.log(uniqueMovies);
     const newMovieIds = new Set(newMovies.value.map(m => m.id)); 
     console.log(newMovieIds); 
     return uniqueMovies.filter(m => !newMovieIds.has(m.id)); 
@@ -173,14 +163,11 @@ const searchResults = computed(() => {
     }
   }
 
-  // Delete movie
   async function handleDelete(id) {
     await deleteMovie(id);
     await fetchMovies();
     editing.value = null;
   }
-
-  // Close form
 </script>
 
 <style>
