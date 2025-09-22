@@ -7,93 +7,132 @@
       <label class="block mb-1 text-sm">Title</label>
       <input
         v-model="form.title"
+        @blur="touched.title = true"
         type="text"
         placeholder="Enter movie title"
         class="w-full px-3 py-2 rounded bg-gray-800 text-white focus:outline-none focus:ring focus:ring-red-600"
         required
       />
+      <span v-if="touched.title && !form.title.trim()" class="text-red-500 text-xs">
+        This field is required
+      </span>
     </div>
 
     <div>
       <label class="block mb-1 text-sm">Director</label>
       <input
         v-model="form.directors"
+        @blur="touched.directors = true"
         type="text"
         placeholder="Enter director name"
         class="w-full px-3 py-2 rounded bg-gray-800 text-white focus:outline-none focus:ring focus:ring-red-600"
       />
+      <span v-if="touched.directors && !form.directors.trim()" class="text-red-500 text-xs">
+        This field is required
+      </span>
     </div>
 
     <div>
       <label class="block mb-1 text-sm">Actors</label>
       <input
         v-model="form.actors"
+        @blur="touched.actors = true"
         type="text"
         placeholder="Enter director name"
         class="w-full px-3 py-2 rounded bg-gray-800 text-white focus:outline-none focus:ring focus:ring-red-600"
       />
+      <span v-if="touched.actors && !form.actors.trim()" class="text-red-500 text-xs">
+        This field is required
+      </span>
     </div>
 
     <div>
       <label class="block mb-1 text-sm">Country</label>
       <input
         v-model="form.country"
+        @blur="touched.country = true"
         type="text"
         placeholder="Enter country name"
         class="w-full px-3 py-2 rounded bg-gray-800 text-white focus:outline-none focus:ring focus:ring-red-600"
       />
+      <span v-if="touched.country && !form.country.trim()" class="text-red-500 text-xs">
+        This field is required
+      </span>
     </div>
 
     <div>
       <label class="block mb-1 text-sm">Cover Link</label>
       <input
         v-model="form.cover_link"
+        @blur="touched.cover_link = true"
         type="url"
         placeholder="https://example.com/image.jpg"
         class="w-full px-3 py-2 rounded bg-gray-800 text-white focus:outline-none focus:ring focus:ring-red-600"
       />
+      <span v-if="touched.cover_link && !form.cover_link.trim()" class="text-red-500 text-xs">
+        This field is required
+      </span>
     </div>
 
     <div>
       <label class="block mb-1 text-sm">Trailer Link</label>
       <input
         v-model="form.trailer_link"
+        @blur="touched.trailer_link = true"
         type="url"
         placeholder="https://example.com/image.jpg"
         class="w-full px-3 py-2 rounded bg-gray-800 text-white focus:outline-none focus:ring focus:ring-red-600"
       />
+      <span v-if="touched.trailer_link && !form.trailer_link.trim()" class="text-red-500 text-xs">
+        This field is required
+      </span>
     </div>
 
     <div>
       <label class="block mb-1 text-sm">Duration (minutes)</label>
       <input
         v-model="form.duration"
+        @blur="touched.duration = true"
         type="number"
         min="1"
         placeholder="Duration (minutes)"
         class="w-full px-3 py-2 rounded bg-gray-800 text-white focus:outline-none focus:ring focus:ring-red-600"
       />
+      <span v-if="touched.duration && !String(form.duration).trim()" class="text-red-500 text-xs">
+        This field is required
+      </span>
     </div>
 
     <div>
       <label class="block mb-1 text-sm">Year</label>
       <input
         v-model="form.year"
+        @blur="touched.year = true"
         type="number"
         min="1"
         placeholder="Year"
         class="w-full px-3 py-2 rounded bg-gray-800 text-white focus:outline-none focus:ring focus:ring-red-600"
       />
+      <span v-if="touched.year && !String(form.year).trim()" class="text-red-500 text-xs">
+        This field is required
+      </span>
     </div>
 
     <div>
       <label class="block mb-1 text-sm">Summary</label>
       <textarea
         v-model="form.notes"
+        @blur="touched.notes = true"
         rows="3"
         placeholder="Enter movie summary"
         class="w-full px-3 py-2 rounded bg-gray-800 text-white focus:outline-none focus:ring focus:ring-red-600"
       ></textarea>
+      <span v-if="touched.notes && !form.notes.trim()" class="text-red-500 text-xs">
+        This field is required
+      </span>
+      <span v-if="form.notes.trim().length > 101" class="text-red-500 text-xs">
+        This field must be at most 100 characters
+      </span>
     </div>
 
     <div class="p-4 bg-gray-900 rounded">
@@ -114,11 +153,13 @@
 
     <div class="mt-4 flex gap-2 flex justify-center">
       <button type="submit"
-              class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+      :disabled="!isValid"
+      class="px-4 py-2 bg-blue-600 disabled:bg-gray-500 disabled:cursor-not-allowed 
+      text-white rounded hover:bg-blue-700 transition">
         Save
       </button>
       <button type="button" @click="$emit('cancel')"
-              class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition">
+        class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition">
         Cancel
       </button>
     </div>
@@ -126,8 +167,9 @@
 </template>
 
 <script setup>
-  import { reactive, ref, watch, onMounted } from "vue";
+  import { reactive, ref, watch, onMounted, computed } from "vue";
 
+  const selectedGenres = ref([]);
   const props = defineProps({
     modelValue: {
       type: Object,
@@ -135,8 +177,6 @@
     }
   });
   const emit = defineEmits(["save", "cancel"]);
-  console.log(props.modelValue, 'val');
-
   const form = reactive({
     title: props.modelValue.title || "",
     directors: props.modelValue.directors || "",
@@ -150,12 +190,51 @@
     id: props.modelValue.id || "",
   });
 
+  const touched = reactive({
+    title: false,
+    directors: false,
+    actors: false,
+    country: false,
+    cover_link: false,
+    trailer_link: false,
+    duration: false,
+    year: false,
+    notes: false
+  });
+
+  const isValid = computed(() => {
+    return (
+      form.title.trim() !== "" &&
+      form.directors.trim() !== "" &&
+      form.actors.trim() !== "" &&
+      form.country.trim() !== "" &&
+      form.cover_link.trim() !== "" &&
+      form.trailer_link.trim() !== "" &&
+      String(form.duration).trim() !== "" && 
+      String(form.year).trim() !== "" && 
+      form.notes.trim() !== "" &&
+      selectedGenres.value.length > 0 &&
+      form.notes.trim().length <= 100
+    );
+  });
+
+  function formatTrailerLink(link) {
+    if (!link) return "";
+    if (link.includes("embed/")) return link;
+    if (link.includes("watch?v=")) {
+      return link.replace("watch?v=", "embed/");
+    }
+    return link;
+  }
+
+  watch(isValid, (val) => {
+    console.log("isValid berubah:", val);
+  });
+
   const availableGenres = [
     "Action","Comedy","Drama","Horror","Sci-Fi","Crime","Thriller","War",
     "Animation", "Romantic", "Biography", "Western"
   ];
-
-  const selectedGenres = ref([]);
 
   function initSelectedGenres() {
     const genreData = props.modelValue?.genre;
@@ -169,8 +248,6 @@
   }
 
   onMounted(() => {
-    console.log("Mounted props.modelValue:", props.modelValue.genre);
-
     initSelectedGenres()
   });
 
@@ -178,8 +255,7 @@
     () => props.modelValue,
     () => {
       form.title = props.modelValue.title || "";
-      // ... update field lain
-      initSelectedGenres(); // gunakan fungsi ini
+      initSelectedGenres(); 
     },
     { immediate: true, deep: true }
   );
@@ -202,8 +278,10 @@
     const payload = {
       ...form,
       genre: selectedGenres.value,
-      id: generateRandomId(),
+      trailer_link: formatTrailerLink(form.trailer_link),
+      id: form.id || generateRandomId(),
     };
+    if (!isValid.value) return;
     emit("save", payload);
   }
 </script>

@@ -132,7 +132,6 @@
 
   function openEdit(movie) {
     editing.value = { ...movie };
-    console.log(editing.value, 'editing');
     showModal.value = true;
   }
 

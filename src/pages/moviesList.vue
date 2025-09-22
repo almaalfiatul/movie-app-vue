@@ -134,7 +134,6 @@
     try {
       const data = await getMovies(); 
       movies.value = data || []; 
-      console.log(movies.value, "movies loaded");
     } catch (err) {
       console.error("Failed to fetch movies:", err);
       movies.value = [];
@@ -186,7 +185,6 @@
 
   function openEdit(movie) {
     editing.value = { ...movie };
-    console.log(editing.value, 'editing');
     showModal.value = true;
   }
 

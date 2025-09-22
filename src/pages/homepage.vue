@@ -107,22 +107,23 @@
   });
 
   const newMovies = computed(() => {
-  return movies.value
-    .slice()
-    .sort((a, b) => b.year - a.year)
-    .slice(0, 4);
-});
-
-const searchResults = computed(() => { 
-  if (!props.searchQuery) return movies.value; 
-    const filtered = movies.value.filter(m => m.title.toLowerCase().includes(props.searchQuery.toLowerCase()) );
-    const uniqueMovies = Array.from(new Map(filtered.map(m => [m.id, m])).values()); 
-    console.log(uniqueMovies);
-    const newMovieIds = new Set(newMovies.value.map(m => m.id)); 
-    console.log(newMovieIds); 
-    return uniqueMovies.filter(m => !newMovieIds.has(m.id)); 
+    return movies.value
+      .slice()
+      .sort((a, b) => b.year - a.year)
+      .slice(0, 4);
   });
+  
+  const searchResults = computed(() => { 
+    const query = (props.searchQuery || "").trim().toLowerCase();
+    if (!query) return movies.value;
 
+    const filtered = movies.value.filter(
+      (m) => m?.title?.toLowerCase().includes(query)
+    );
+    return Array.from(new Map(filtered.map(m => [m.id, m])).values());
+  });
+  
+  
 
   function openNew() {
     editing.value = {
