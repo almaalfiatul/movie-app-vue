@@ -1,5 +1,23 @@
-# Vue 3 + Vite
+# Movie Collection App
+Aplikasi Movie Collection berbasis Vue 3 + Vite + Firebase untuk mengelola koleksi film.
+Fitur:
+1. Tambah, edit, hapus movie
+2. Pencarian movie berdasarkan judul
+3. Movie Collection dengan grid responsive
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+# Cara Menjalankan Project
+1. Clone repository dari GitLab
+2. Install dependencies (Pastikan sudah ada Node.js >= 18)
+3. Pastikan sudah install Vue 3 dan Vite
+4. Jalankan aplikasi (npm run dev)
 
-Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
+# Ketentuan Project
+
+1. ID Movie : Digenerate otomatis dengan kombinasi timestamp + random (unik per detik). ID ini digunakan sebagai primary key.
+2. Genre : Multi-select dengan tombol toggle. Data disimpan sebagai array (["Action","Drama"]).
+3. Trailer Link : Jika link mengandung watch?v=, otomatis diubah menjadi embed/. (Link menggunakan link youtube, kalau bisa link embed).
+4. Summary (Notes) : Wajib diisi. Maksimal 100 karakter.
+5. Validasi Form : Semua field wajib diisi. Tombol Save hanya aktif jika semua valid.
+6. Untuk Edit, ID movie tetap sama (tidak digenerate ulang).
+7. Search : Mencari berdasarkan judul film (title).
+
